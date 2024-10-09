@@ -5,8 +5,11 @@ public final class MyAgent extends PacManControllerBase
 {	
 	@Override
 	public void tick(Game game, long timeDue) {
-		
-		// Code your agent here.
+
+		for (int dir : game.getPossiblePacManDirs(false)){
+			Game gameCopy = game.copy();
+			gameCopy.advanceGame(dir);
+		}
 		
 		// Dummy implementation: move in a random direction.  You won't live long this way,
 		int[] directions = game.getPossiblePacManDirs(false);	
