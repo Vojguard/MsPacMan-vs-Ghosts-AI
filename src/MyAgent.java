@@ -1,17 +1,27 @@
 import controllers.pacman.PacManControllerBase;
 import game.core.Game;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public final class MyAgent extends PacManControllerBase
-{	
+{
+	private static class State {
+		Game game;
+		Integer cost;
+
+		public State(Game game, Integer cost) {
+			this.game = game;
+			this.cost = cost;
+		}
+	}
+
 	@Override
 	public void tick(Game game, long timeDue) {
 
-		ArrayList<Game> fringe = new ArrayList<>();
-		fringe.add(game);
+		Queue<State> fringe = new LinkedList<>();
+		State state = new State(game, 0);
+
+		fringe.add(state);
 		HashMap<Game, Integer> visitedCosts = new HashMap<Game, Integer>() {};
 
 		// better timeout
@@ -26,6 +36,7 @@ public final class MyAgent extends PacManControllerBase
 				for (int dir : game.getPossiblePacManDirs(false)){
 					Game gameCopy = game.copy();
 					gameCopy.advanceGame(dir);
+					State stateCopy = new State(gameCopy, 0);
 					//calculate cost
 					Integer gameCost = 0;
 					if (visitedCosts.get(gameCopy) != null){
@@ -33,7 +44,7 @@ public final class MyAgent extends PacManControllerBase
 						continue;
 					}
 					visitedCosts.put(gameCopy, gameCost);
-					fringe.add(gameCopy);
+					fringe.add(stateCopy);
 				}
 				pacman.set(directions[game.rand().nextInt(directions.length)]);
 				return;
@@ -43,5 +54,9 @@ public final class MyAgent extends PacManControllerBase
 			// pacman.set best dir
 		}
 		
+	}
+
+	private int EvaluateState(State stateToEval){
+		return stateToEval.cost;
 	}
 }
