@@ -5,13 +5,12 @@ import java.util.*;
 
 public final class MyAgent extends PacManControllerBase {
     private static class State {
-        int dir;
-        State prev;
+        int subTreeDir;
         Game game;
         Integer cost;
 
-        public State(int dir, State prev, Game game, Integer cost) {
-            this.dir = dir; // TODO: Track the first direction
+        public State(int subTreeDir, Game game, Integer cost) {
+            this.subTreeDir = subTreeDir;
             this.game = game;
             this.cost = cost;
         }
@@ -21,70 +20,39 @@ public final class MyAgent extends PacManControllerBase {
     public void tick(Game game, long timeDue) {
 
         Queue<State> fringe = new LinkedList<>();
-        State state = new State(-1, null, game, 0);
-
-        fringe.add(state);
-        HashMap<State, Integer> visitedCosts = new HashMap<>() {
-        };
+        // HashMap<State, Integer> visitedCosts = new HashMap<>() {        };
+        State bestState = new State(-1, game, 0);
 
         int[] directions = game.getPossiblePacManDirs(false);
-        if (directions.length == 1) {
-            pacman.set(directions[0]);
-            return;
+        for (int dir : directions) {
+            State next = new State(dir, game.copy(), 0);
+            next.game.advanceGame(dir);
+            next.cost = next.game.getScore();
+            fringe.add(next);
         }
 
         while (!fringe.isEmpty() && System.currentTimeMillis() < timeDue - 20) {
             State current = fringe.poll();
             assert current != null;
-            if (current.game.gameOver()) {
-                pacman.set(GetBestDir(current));
-                return;
-            }
-            for (int dir : current.game.getPossiblePacManDirs(true)) {
-                State next = new State(dir, current, current.game.copy(), current.cost);
+            for (int dir : current.game.getPossiblePacManDirs(false)) {
+                State next = new State(current.subTreeDir, current.game.copy(), current.cost);
                 next.game.advanceGame(dir);
                 next.cost = next.game.getScore(); //current.cost + EvaluateState(next.game);
-                if (visitedCosts.get(next) != null) {
-                    if (next.cost <= visitedCosts.get(next)){ //TODO: score based... higher cost the better.
-                        continue;
-                    }
-                }
-                visitedCosts.put(next, next.cost);
                 fringe.add(next);
-            }
 
-        }
-        if (System.currentTimeMillis() >= timeDue - 20) {
-            // TODO: pacman.set best dir
-            int bestCost = -1;
-            State bestState = null;
-            for (State st : fringe){
-                if (bestCost < st.cost){
-                    bestCost = st.cost;
-                    bestState = st;
+                if (bestState.cost <= next.cost){
+                    bestState = next;
                 }
             }
-            assert bestState != null;
-            pacman.set(GetBestDir(bestState));
-
-        } else {
-            pacman.set(directions[game.rand().nextInt(directions.length)]);
         }
+        pacman.set(bestState.subTreeDir);
     }
+
 
     private Integer EvaluateState(Game stateToEval) {
         //TODO: implement heuristic function
         Integer stateCost = 0;
         //if (stateToEval.gameOver() && stateToEval.getLivesRemaining() <= 0) stateCost = 1000;
         return stateCost;
-    }
-
-    private int GetBestDir(State bestState){
-        int bestDir = bestState.dir;
-        while (bestState.prev != null){
-            bestDir = bestState.dir;
-            bestState = bestState.prev;
-        }
-        return bestDir;
     }
 }
