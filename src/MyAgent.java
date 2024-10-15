@@ -23,7 +23,7 @@ public final class MyAgent extends PacManControllerBase {
         // HashMap<State, Integer> visitedCosts = new HashMap<>() {        };
         State bestState = new State(-1, game, 0);
 
-        int[] directions = game.getPossiblePacManDirs(false);
+        int[] directions = game.getPossiblePacManDirs(true);
         for (int dir : directions) {
             State next = new State(dir, game.copy(), 0);
             next.game.advanceGame(dir);
@@ -37,8 +37,8 @@ public final class MyAgent extends PacManControllerBase {
             for (int dir : current.game.getPossiblePacManDirs(false)) {
                 State next = new State(current.subTreeDir, current.game.copy(), current.cost);
                 next.game.advanceGame(dir);
-                next.cost = next.game.getScore(); //current.cost + EvaluateState(next.game);
-                fringe.add(next);
+                next.cost = EvaluateState(current.game, next.game);
+                if (next.cost > 0) fringe.add(next);
 
                 if (bestState.cost <= next.cost){
                     bestState = next;
@@ -49,10 +49,17 @@ public final class MyAgent extends PacManControllerBase {
     }
 
 
-    private Integer EvaluateState(Game stateToEval) {
+    private int EvaluateState(Game prev, Game stateToEval) {
         //TODO: implement heuristic function
-        Integer stateCost = 0;
-        //if (stateToEval.gameOver() && stateToEval.getLivesRemaining() <= 0) stateCost = 1000;
+        int stateCost = stateToEval.getScore();
+
+        if (stateToEval.getNumActivePills() - prev.getNumActivePills() > 0) stateCost += 100;
+        if (stateToEval.getLivesRemaining() - prev.getLivesRemaining() < 0) {
+            stateCost = -1000;
+        } else if (stateToEval.getLivesRemaining() - prev.getLivesRemaining() > 0){
+            stateCost += 1000;
+        }
+
         return stateCost;
     }
 }
