@@ -32,7 +32,7 @@ public final class MyAgent extends PacManControllerBase {
         // HashMap<State, Integer> visitedCosts = new HashMap<>() {        };
         State bestState = new State(-1, game, 0);
 
-        int[] directions = game.getPossiblePacManDirs(true);
+        int[] directions = game.getPossiblePacManDirs(false);
         for (int dir : directions) {
             State next = new State(dir, game.copy(), 0);
             next.game.advanceGame(dir);
@@ -40,7 +40,7 @@ public final class MyAgent extends PacManControllerBase {
             fringe.add(next);
         }
 
-        while (!fringe.isEmpty() && System.currentTimeMillis() < timeDue - 20) {
+        while (!fringe.isEmpty() && System.currentTimeMillis() < timeDue - 10) {
             State current = fringe.poll();
             assert current != null;
             for (int dir : current.game.getPossiblePacManDirs(false)) {
@@ -63,7 +63,6 @@ public final class MyAgent extends PacManControllerBase {
         int stateCost = stateToEval.getScore();
 
         if (prev.getNumActivePills() - stateToEval.getNumActivePills() > 0) stateCost += 100;
-        if (prev.getNumActivePowerPills() - stateToEval.getNumActivePowerPills() > 0) stateCost -= 1600;
         if (prev.getCurLevel() - stateToEval.getCurLevel() < 0) stateCost += 1000;
         if (prev.getLivesRemaining() - stateToEval.getLivesRemaining() > 0) {
             stateCost -= 100000;
