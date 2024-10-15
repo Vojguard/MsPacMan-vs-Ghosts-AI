@@ -53,9 +53,10 @@ public final class MyAgent extends PacManControllerBase {
         //TODO: implement heuristic function
         int stateCost = stateToEval.getScore();
 
-        if (stateToEval.getNumActivePills() - prev.getNumActivePills() > 0) stateCost += 100;
-        if (stateToEval.getLivesRemaining() - prev.getLivesRemaining() < 0) {
-            stateCost = -1000;
+        if (prev.getNumActivePills() - stateToEval.getNumActivePills() > 0) stateCost += 100;
+        if (prev.getNumActivePowerPills() - stateToEval.getNumActivePowerPills() > 0) stateCost -= 160;
+        if (prev.getLivesRemaining() - stateToEval.getLivesRemaining() > 0) {
+            stateCost -= 100000;
         } else if (stateToEval.getLivesRemaining() - prev.getLivesRemaining() > 0){
             stateCost += 1000;
         }
