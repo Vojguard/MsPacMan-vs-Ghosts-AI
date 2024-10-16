@@ -29,8 +29,6 @@ public final class MyAgent extends PacManControllerBase {
 
         StateComparator comparator = new StateComparator();
         PriorityQueue<State> fringe = new PriorityQueue<State>(comparator);
-        // HashMap<State, Integer> visitedCosts = new HashMap<>() {        };
-        State bestState = new State(-1, game, 0);
 
         int[] directions = game.getPossiblePacManDirs(false);
         for (int dir : directions) {
@@ -47,20 +45,17 @@ public final class MyAgent extends PacManControllerBase {
                 State next = new State(current.subTreeDir, current.game.copy(), current.cost);
                 next.game.advanceGame(dir);
                 next.cost = EvaluateState(current.game, next.game);
-                if (next.cost > 0) fringe.add(next);
-
-                if (bestState.cost <= next.cost){
-                    bestState = next;
-                }
+                fringe.add(next);
             }
         }
-        pacman.set(bestState.subTreeDir);
+        assert fringe.peek() != null;
+        pacman.set(fringe.peek().subTreeDir);
     }
 
 
     private int EvaluateState(Game prev, Game stateToEval) {
         //TODO: implement heuristic function
-        int stateCost = stateToEval.getScore();
+        /*int stateCost = stateToEval.getScore();
 
         if (prev.getNumActivePills() - stateToEval.getNumActivePills() > 0) stateCost += 100;
         if (prev.getCurLevel() - stateToEval.getCurLevel() < 0) stateCost += 1000;
@@ -68,8 +63,12 @@ public final class MyAgent extends PacManControllerBase {
             stateCost -= 100000;
         } else if (stateToEval.getLivesRemaining() - prev.getLivesRemaining() > 0){
             stateCost += 1000;
+        }*/
+        int stateCost = 0;
+        for (int ghost = 0; ghost < 4; ghost++){
+            stateCost += stateToEval.getPathDistance(stateToEval.getCurPacManLoc(), stateToEval.getCurGhostLoc(ghost));
         }
 
-        return stateCost;
+        return (stateCost / 4) - stateToEval.getDistanceToNearestPill();
     }
 }
