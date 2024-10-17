@@ -47,6 +47,10 @@ public final class MyAgent extends PacManControllerBase {
         while (!fringe.isEmpty() && System.currentTimeMillis() < timeDue - 10) {
             State current = fringe.poll();
             assert current != null;
+            if (current.game.getNumActivePills() == 0){
+                pacman.set(current.subTreeDir);
+                return;
+            }
             for (int dir : current.game.getPossiblePacManDirs(false)) {
                 State next = new State(current.subTreeDir, current.game.copy(), current.cost, 0);
                 next.game.advanceGame(dir);
@@ -70,11 +74,11 @@ public final class MyAgent extends PacManControllerBase {
         } else if (stateToEval.getLivesRemaining() - prev.getLivesRemaining() > 0){
             nearestGhostDist += 1000;
         }*/
-        int nearestGhostDist = 10000;
+        int nearestGhostDist = Integer.MAX_VALUE;
 
         // Find the closest ghost
         for (int ghost = 0; ghost < 4; ghost++){
-            int ghostDist = stateToEval.game.getPathDistance(stateToEval.game.getCurPacManLoc(), stateToEval.game.getCurGhostLoc(ghost));
+            int ghostDist = stateToEval.game.getManhattanDistance(stateToEval.game.getCurPacManLoc(), stateToEval.game.getCurGhostLoc(ghost));
             if (ghostDist < nearestGhostDist){
                 nearestGhostDist = ghostDist;
             }
