@@ -8,11 +8,13 @@ public final class MyAgent extends PacManControllerBase {
         int subTreeDir;
         Game game;
         Integer cost;
+        Integer tieBreak;
 
-        public State(int subTreeDir, Game game, Integer cost) {
+        public State(int subTreeDir, Game game, Integer cost, Integer tieBreak) {
             this.subTreeDir = subTreeDir;
             this.game = game;
             this.cost = cost;
+            this.tieBreak = tieBreak;
         }
     }
 
@@ -20,7 +22,11 @@ public final class MyAgent extends PacManControllerBase {
 
         @Override
         public int compare(State o1, State o2) {
-            return o1.cost - o2.cost;
+            int diff = o1.cost - o2.cost;
+            if (diff == 0){
+                return o2.tieBreak - o1.tieBreak;
+            }
+            return diff;
         }
     }
 
@@ -32,9 +38,9 @@ public final class MyAgent extends PacManControllerBase {
 
         int[] directions = game.getPossiblePacManDirs(false);
         for (int dir : directions) {
-            State next = new State(dir, game.copy(), 0);
+            State next = new State(dir, game.copy(), 0, 0);
             next.game.advanceGame(dir);
-            next.cost = Heuristic(next.game);
+            next.cost = Heuristic(next);
             fringe.add(next);
         }
 
@@ -42,9 +48,9 @@ public final class MyAgent extends PacManControllerBase {
             State current = fringe.poll();
             assert current != null;
             for (int dir : current.game.getPossiblePacManDirs(false)) {
-                State next = new State(current.subTreeDir, current.game.copy(), current.cost);
+                State next = new State(current.subTreeDir, current.game.copy(), current.cost, 0);
                 next.game.advanceGame(dir);
-                next.cost = current.cost + Heuristic(next.game);
+                next.cost = current.cost + Heuristic(next);
                 fringe.add(next);
             }
         }
@@ -53,7 +59,7 @@ public final class MyAgent extends PacManControllerBase {
     }
 
 
-    private int Heuristic(Game stateToEval) {
+    private int Heuristic(State stateToEval) {
         //TODO: implement heuristic function
         /*int nearestGhostDist = stateToEval.getScore();
 
@@ -68,12 +74,12 @@ public final class MyAgent extends PacManControllerBase {
 
         // Find the closest ghost
         for (int ghost = 0; ghost < 4; ghost++){
-            int ghostDist = stateToEval.getPathDistance(stateToEval.getCurPacManLoc(), stateToEval.getCurGhostLoc(ghost));
+            int ghostDist = stateToEval.game.getPathDistance(stateToEval.game.getCurPacManLoc(), stateToEval.game.getCurGhostLoc(ghost));
             if (ghostDist < nearestGhostDist){
                 nearestGhostDist = ghostDist;
             }
         }
-
-        return stateToEval.getDistanceToNearestPill() + nearestGhostDist;
+        stateToEval.tieBreak = nearestGhostDist;
+        return stateToEval.game.getNumActivePills();
     }
 }
