@@ -7,14 +7,14 @@ public final class MyAgent extends PacManControllerBase {
     private static class State {
         int subTreeDir;
         Game game;
-        Integer cost;
-        Integer tieBreak;
+        Integer hCost;
+        Integer rCost;
 
-        public State(int subTreeDir, Game game, Integer cost, Integer tieBreak) {
+        public State(int subTreeDir, Game game, Integer hCost, Integer rCost) {
             this.subTreeDir = subTreeDir;
             this.game = game;
-            this.cost = cost;
-            this.tieBreak = tieBreak;
+            this.hCost = hCost;
+            this.rCost = rCost;
         }
     }
 
@@ -22,11 +22,7 @@ public final class MyAgent extends PacManControllerBase {
 
         @Override
         public int compare(State o1, State o2) {
-            int diff = o1.cost - o2.cost;
-            if (diff == 0){
-                return o2.tieBreak - o1.tieBreak;
-            }
-            return diff;
+            return o1.hCost - o2.hCost;
         }
     }
 
@@ -40,7 +36,8 @@ public final class MyAgent extends PacManControllerBase {
         for (int dir : directions) {
             State next = new State(dir, game.copy(), 0, 0);
             next.game.advanceGame(dir);
-            next.cost = Heuristic(next);
+            next.hCost = Heuristic(next.game);
+            next.rCost = EvaluateState(game, next.game);
             fringe.add(next);
         }
 
@@ -52,9 +49,10 @@ public final class MyAgent extends PacManControllerBase {
                 return;
             }
             for (int dir : current.game.getPossiblePacManDirs(false)) {
-                State next = new State(current.subTreeDir, current.game.copy(), current.cost, 0);
+                State next = new State(current.subTreeDir, current.game.copy(), current.hCost, 0);
                 next.game.advanceGame(dir);
-                next.cost = current.cost + Heuristic(next);
+                next.hCost = current.rCost + Heuristic(next.game);
+                next.rCost = EvaluateState(current.game, next.game);
                 fringe.add(next);
             }
         }
@@ -62,28 +60,31 @@ public final class MyAgent extends PacManControllerBase {
         pacman.set(fringe.peek().subTreeDir);
     }
 
+    private int EvaluateState(Game prev, Game curr){
+        int realCost = curr.getScore();
 
-    private int Heuristic(State stateToEval) {
+        if (prev.getNumActivePills() - curr.getNumActivePills() > 0) realCost += 100;
+        if (prev.getCurLevel() - curr.getCurLevel() < 0) realCost += 1000;
+        if (prev.getLivesRemaining() - curr.getLivesRemaining() > 0) {
+            realCost -= 100000;
+        } else if (curr.getLivesRemaining() - prev.getLivesRemaining() > 0){
+            realCost += 1000;
+        }
+        return realCost;
+    }
+
+    private int Heuristic(Game stateToEval) {
         //TODO: implement heuristic function
-        /*int nearestGhostDist = stateToEval.getScore();
-
-        if (prev.getNumActivePills() - stateToEval.getNumActivePills() > 0) nearestGhostDist += 100;
-        if (prev.getCurLevel() - stateToEval.getCurLevel() < 0) nearestGhostDist += 1000;
-        if (prev.getLivesRemaining() - stateToEval.getLivesRemaining() > 0) {
-            nearestGhostDist -= 100000;
-        } else if (stateToEval.getLivesRemaining() - prev.getLivesRemaining() > 0){
-            nearestGhostDist += 1000;
-        }*/
-        int nearestGhostDist = Integer.MAX_VALUE;
+        /*int realCost = Integer.MAX_VALUE;
 
         // Find the closest ghost
         for (int ghost = 0; ghost < 4; ghost++){
             int ghostDist = stateToEval.game.getManhattanDistance(stateToEval.game.getCurPacManLoc(), stateToEval.game.getCurGhostLoc(ghost));
-            if (ghostDist < nearestGhostDist){
-                nearestGhostDist = ghostDist;
+            if (ghostDist < realCost){
+                realCost = ghostDist;
             }
-        }
-        stateToEval.tieBreak = nearestGhostDist;
-        return stateToEval.game.getNumActivePills();
+        }*/
+
+        return stateToEval.getDistanceToNearestPill();
     }
 }
