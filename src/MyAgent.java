@@ -48,8 +48,9 @@ public final class MyAgent extends PacManControllerBase {
         while (!fringe.isEmpty() && System.currentTimeMillis() < timeDue - 10) {
             State current = fringe.poll();
             assert current != null;
-            if (current.game.gameOver() && current.game.getLivesRemaining() > 0){
-                continue;
+            if (current.game.gameOver() && (current.game.getLivesRemaining() > 0 || current.game.getNumActivePills() <= 0)){
+                pacman.set(current.subTreeDir);
+                return;
             }
             for (int dir : current.game.getPossiblePacManDirs(false)) {
                 State next = new State(current.subTreeDir, current.game.copy(), current.hCost, 0);
@@ -88,12 +89,12 @@ public final class MyAgent extends PacManControllerBase {
             }
         }*/
 
-        return stateToEval.getDistanceToNearestPill();
+        //return stateToEval.getDistanceToNearestPill();
 
-        /*try {
+        try {
             return stateToEval.getDistanceToNearestPill();
         } catch (Exception e) {
             return -1;
-        }*/
+        }
     }
 }
