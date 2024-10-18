@@ -22,7 +22,11 @@ public final class MyAgent extends PacManControllerBase {
 
         @Override
         public int compare(State o1, State o2) {
-            return o1.hCost - o2.hCost;
+            int diff = o2.rCost - o1.rCost;
+            if (diff == 0){
+                return o1.hCost - o2.hCost;
+            }
+            return diff;
         }
     }
 
@@ -44,14 +48,13 @@ public final class MyAgent extends PacManControllerBase {
         while (!fringe.isEmpty() && System.currentTimeMillis() < timeDue - 10) {
             State current = fringe.poll();
             assert current != null;
-            if (current.game.getNumActivePills() == 0){
-                pacman.set(current.subTreeDir);
-                return;
+            if (current.game.gameOver() && current.game.getLivesRemaining() > 0){
+                continue;
             }
             for (int dir : current.game.getPossiblePacManDirs(false)) {
                 State next = new State(current.subTreeDir, current.game.copy(), current.hCost, 0);
                 next.game.advanceGame(dir);
-                next.hCost = current.rCost + Heuristic(next.game);
+                next.hCost = current.hCost + Heuristic(next.game);
                 next.rCost = EvaluateState(current.game, next.game);
                 fringe.add(next);
             }
@@ -64,7 +67,7 @@ public final class MyAgent extends PacManControllerBase {
         int realCost = curr.getScore();
 
         if (prev.getNumActivePills() - curr.getNumActivePills() > 0) realCost += 100;
-        if (prev.getCurLevel() - curr.getCurLevel() < 0) realCost += 1000;
+        if (prev.getCurLevel() - curr.getCurLevel() < 0) realCost += 3200;
         if (prev.getLivesRemaining() - curr.getLivesRemaining() > 0) {
             realCost -= 100000;
         } else if (curr.getLivesRemaining() - prev.getLivesRemaining() > 0){
@@ -86,5 +89,11 @@ public final class MyAgent extends PacManControllerBase {
         }*/
 
         return stateToEval.getDistanceToNearestPill();
+
+        /*try {
+            return stateToEval.getDistanceToNearestPill();
+        } catch (Exception e) {
+            return -1;
+        }*/
     }
 }
