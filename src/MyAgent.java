@@ -78,18 +78,6 @@ public final class MyAgent extends PacManControllerBase {
     }
 
     private int Heuristic(Game stateToEval) {
-        //TODO: implement heuristic function
-        /*int realCost = Integer.MAX_VALUE;
-
-        // Find the closest ghost
-        for (int ghost = 0; ghost < 4; ghost++){
-            int ghostDist = stateToEval.game.getManhattanDistance(stateToEval.game.getCurPacManLoc(), stateToEval.game.getCurGhostLoc(ghost));
-            if (ghostDist < realCost){
-                realCost = ghostDist;
-            }
-        }*/
-
-        //return stateToEval.getDistanceToNearestPill();
 
         try {
             return stateToEval.getDistanceToNearestPill();
